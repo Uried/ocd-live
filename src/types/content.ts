@@ -11,7 +11,7 @@ export interface Photo {
   credit: string;
   source: string;
   position: string;
-  kind?: 'studio' | 'illustration';
+  kind?: 'studio' | 'illustration' | 'provided';
   width?: number;
   height?: number;
 }

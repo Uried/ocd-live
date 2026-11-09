@@ -1,4 +1,4 @@
-import commerce from '../../assets/images/commerce.jpg';
+import liveCommerce from '../../assets/images/live-commerce.jpg';
 import production from '../../assets/images/production.jpg';
 import studio from '../../assets/images/studio.webp';
 import type { HomeContent } from '../../types/content';
@@ -41,7 +41,7 @@ export const homeContent: HomeContent = {
       description: 'Participez depuis votre commerce ou votre domicile. Une autre façon de prendre la parole, avec la possibilité d’un accompagnement par une assistante située au Togo.',
       details: ['Depuis votre commerce ou votre domicile', 'Sans déplacement dans nos locaux', 'Un accompagnement possible, à définir ensemble'],
       cta: 'Choisir la distance',
-      photo: { src: commerce, alt: 'Une commerçante accueille dans sa boutique à Dar es Salaam, en Tanzanie.', credit: 'Ali Mkumbwa', source: 'https://unsplash.com/photos/EOkN2pRjFsg', position: '50% 44%' },
+      photo: { src: liveCommerce, alt: 'Une commerçante présente un produit en direct vidéo depuis sa boutique, filmée par un téléphone sur trépied.', credit: 'OCD Live · visuel fourni', source: '', position: '50% 50%', kind: 'provided', width: 1376, height: 768 },
     },
   ],
   steps: [
