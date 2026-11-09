@@ -1,0 +1,9 @@
+{
+  "license": "https://unsplash.com/license",
+  "usage": "Photographies d’illustration. Ne représentent ni les locaux ni les clients réels d’OCD Live.",
+  "photos": [
+    { "file": "conversation.jpg", "author": "Natasha Hall", "source": "https://unsplash.com/photos/2GEMd-c6NOw" },
+    { "file": "commerce.jpg", "author": "Ali Mkumbwa", "source": "https://unsplash.com/photos/EOkN2pRjFsg" },
+    { "file": "production.jpg", "author": "Samantha Borges", "source": "https://unsplash.com/photos/cTMBzKtxrQk" }
+  ]
+}
