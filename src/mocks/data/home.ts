@@ -1,5 +1,6 @@
 import commerce from '../../assets/images/commerce.jpg';
 import production from '../../assets/images/production.jpg';
+import studio from '../../assets/images/studio.webp';
 import type { HomeContent } from '../../types/content';
 
 export const homeContent: HomeContent = {
@@ -14,13 +15,16 @@ export const homeContent: HomeContent = {
     title: 'Votre activité\nmérite d’être\nvue.',
     description: 'Présentez vos produits, développez votre visibilité et touchez de nouveaux clients grâce aux sessions OCD Live.',
     photo: {
-      src: production,
-      alt: 'Dans les coulisses d’un tournage, une professionnelle cadre une conversation avec sa caméra.',
-      credit: 'Samantha Borges',
-      source: 'https://unsplash.com/photos/cTMBzKtxrQk',
-      position: '50% 48%',
+      src: studio,
+      alt: 'Dans les locaux OCD Live, une personne derrière un bureau, devant le logo cuivre et la carte lumineuse de l’Afrique.',
+      credit: 'OCD Live · photographie fournie',
+      source: '',
+      position: '50% 36%',
+      kind: 'studio',
+      width: 415,
+      height: 739,
     },
-    photoLabel: 'Une voix. Une activité. De nouvelles possibilités.',
+    photoLabel: 'Bienvenue dans les locaux OCD Live.',
   },
   modes: [
     {
@@ -42,8 +46,8 @@ export const homeContent: HomeContent = {
   ],
   steps: [
     { number: '01', title: 'Choisissez votre mode.', description: 'Au studio au Togo ou à distance : partez de ce qui vous convient.' },
-    { number: '02', title: 'Trouvez votre formule.', description: 'Choisissez une formule adaptée à votre présentation, lorsque les offres seront disponibles.' },
-    { number: '03', title: 'Réservez votre créneau.', description: 'Sélectionnez votre session parmi les disponibilités, à l’ouverture des réservations.' },
+    { number: '02', title: 'Trouvez votre formule.', description: 'Choisissez une formule adaptée à votre présentation avec notre équipe.' },
+    { number: '03', title: 'Réservez votre créneau.', description: 'Sélectionnez votre session parmi les disponibilités proposées.' },
     { number: '04', title: 'Prenez la parole.', description: 'Présentez vos produits, votre activité et ce qui vous rend unique.' },
   ],
   services: [
@@ -55,7 +59,7 @@ export const homeContent: HomeContent = {
     { id: 'public', question: 'À qui s’adressent les sessions OCD Live ?', answer: 'Aux entrepreneurs, commerçants, entreprises et particuliers souhaitant présenter leurs produits ou services et développer leur visibilité.' },
     { id: 'location', question: 'Dois-je me déplacer au Togo ?', answer: 'Le mode présentiel se déroule dans les locaux OCD Live au Togo. Le mode à distance permet de participer depuis votre commerce ou votre domicile.' },
     { id: 'support', question: 'Puis-je être accompagné à distance ?', answer: 'Un accompagnement par une assistante située au Togo est possible. Ses modalités devront être précisées avec l’équipe avant toute réservation.' },
-    { id: 'pricing', question: 'Où trouver les tarifs et les disponibilités ?', answer: 'Les formules, tarifs et disponibilités officiels ne sont pas encore publiés sur cette version de démonstration. Aucune réservation ni aucun paiement n’y sont effectués.' },
+    { id: 'pricing', question: 'Où trouver les tarifs et les disponibilités ?', answer: 'Les formules, tarifs et disponibilités sont communiqués par notre équipe lors de l’échange préparatoire à votre session.' },
   ],
-  footer: { contact: 'Coordonnées à renseigner', location: 'Togo · Adresse à confirmer', social: ['Instagram', 'Facebook', 'TikTok'] },
+  footer: { contact: '', location: 'Togo', social: ['Instagram', 'Facebook', 'TikTok'] },
 };

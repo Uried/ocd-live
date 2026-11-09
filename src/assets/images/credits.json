@@ -1,6 +1,7 @@
 {
   "license": "https://unsplash.com/license",
-  "usage": "Photographies d’illustration. Ne représentent ni les locaux ni les clients réels d’OCD Live.",
+  "usage": "Les photos listées dans photos sont des illustrations Unsplash. La photo studio.webp est une référence réelle des locaux, fournie pour le projet.",
+  "studio": { "file": "studio.webp", "credit": "OCD Live · photographie fournie pour le projet", "originalDimensions": [415, 739], "processing": "Conversion WebP, sans agrandissement ni retouche du contenu." },
   "photos": [
     { "file": "conversation.jpg", "author": "Natasha Hall", "source": "https://unsplash.com/photos/2GEMd-c6NOw" },
     { "file": "commerce.jpg", "author": "Ali Mkumbwa", "source": "https://unsplash.com/photos/EOkN2pRjFsg" },

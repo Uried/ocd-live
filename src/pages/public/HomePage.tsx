@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import type { BookingMode } from '../../types/booking';
 import { useHomeContent } from '../../hooks/useHomeContent';
 import { PublicLayout } from '../../layouts/PublicLayout';
@@ -14,6 +14,7 @@ import { ClosingCTA } from './home/ClosingCTA';
 
 export function HomePage() {
   const { state, retry } = useHomeContent();
+  const navigate = useNavigate();
   const [booking, setBooking] = useState<{ open: boolean; mode: BookingMode | null }>({ open: false, mode: null });
   const bookingTrigger = useRef<HTMLElement | null>(null);
   const { hash } = useLocation();
@@ -21,6 +22,7 @@ export function HomePage() {
     if (state.status === 'ready' && hash) document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'instant' });
   }, [hash, state.status]);
   const openBooking = (mode: BookingMode | null = null) => {
+    if (mode) { navigate(`/reservation?mode=${mode}`); return; }
     bookingTrigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setBooking({ open: true, mode });
   };

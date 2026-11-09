@@ -7,5 +7,5 @@ export interface ContentRepository {
 
 export interface BookingRepository {
   getPackages(mode: BookingMode): Promise<BookingPackage[]>;
-  getSlots(mode: BookingMode): Promise<BookingSlot[]>;
+  getSlots(mode: BookingMode, packageId: string): Promise<BookingSlot[]>;
 }

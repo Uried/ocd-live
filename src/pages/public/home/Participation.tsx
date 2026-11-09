@@ -13,7 +13,7 @@ export function Participation({ modes, onBook }: { modes: ParticipationMode[]; o
         <div className="participation-list">
           {modes.map((mode) => <article key={mode.id} className={`participation-row participation-${mode.id}`}>
             <figure className="mode-visual"><Photo photo={mode.photo} /><span className="mode-image-label">{mode.id === 'in-person' ? <MapPin size={16} aria-hidden="true" /> : <Monitor size={16} aria-hidden="true" />}{mode.id === 'in-person' ? 'AU STUDIO · TOGO' : 'DEPUIS VOTRE COMMERCE'}</span><figcaption>Photographie d’illustration · {mode.photo.credit}</figcaption></figure>
-            <div className="mode-copy"><div className="mode-eyebrow"><span className="eyebrow">{mode.eyebrow}</span><span className="mode-number">/{mode.number}</span></div><h3>{mode.title}</h3><p>{mode.description}</p><ul>{mode.details.map((detail) => <li key={detail}><Check size={15} aria-hidden="true" />{detail}</li>)}</ul><Button variant={mode.id === 'in-person' ? 'default' : 'outline'} onClick={() => onBook(mode.id)}>{mode.cta}<ArrowUpRight size={18} aria-hidden="true" /></Button></div>
+            <div className="mode-copy"><div className="mode-eyebrow"><span className="eyebrow">{mode.eyebrow}</span><span className="mode-number">/{mode.number}</span></div><h3>{mode.title}</h3><p>{mode.description}</p><ul>{mode.details.map((detail) => <li key={detail}><Check size={15} aria-hidden="true" />{detail}</li>)}</ul><Button variant={mode.id === 'in-person' ? 'accent' : 'outline'} onClick={() => onBook(mode.id)}>{mode.cta}<ArrowUpRight size={18} aria-hidden="true" /></Button></div>
           </article>)}
         </div>
       </Container>

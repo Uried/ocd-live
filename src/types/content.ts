@@ -11,6 +11,9 @@ export interface Photo {
   credit: string;
   source: string;
   position: string;
+  kind?: 'studio' | 'illustration';
+  width?: number;
+  height?: number;
 }
 
 export interface ParticipationMode {

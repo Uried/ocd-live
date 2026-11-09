@@ -35,8 +35,16 @@ export interface BookingPackage {
   id: string;
   name: string;
   modes: BookingMode[];
-  durationMinutes: number;
-  price: { amount: number; currency: Currency };
+  durationMinutes: number | null;
+  price: { amount: number | null; currency: Currency };
+  tier: 'standard' | 'value' | 'premium' | 'flexible';
+  validation: 'defined' | 'pending' | 'suggestion';
+  description: string;
+  durationLabel: string;
+  benefits: string[];
+  inclusions: string[];
+  conditions: string[];
+  internalProposal?: string;
   isDemo: true;
 }
 
