@@ -1,3 +1,6 @@
 .env
-storage/logs/*.log
-storage/rate-limit/*.json
+config/secrets.php
+storage/logs/*
+storage/rate-limit/*
+!storage/logs/.gitkeep
+!storage/rate-limit/.gitkeep

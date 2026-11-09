@@ -40,7 +40,7 @@ final class AuthController
     {
         AdminAuth::csrf($app);
         $_SESSION = [];
-        setcookie(session_name(), '', ['expires' => time() - 3600, 'path' => '/api', 'secure' => $app['cookie_secure'], 'httponly' => true, 'samesite' => 'Strict']);
+        setcookie(session_name(), '', ['expires' => time() - 3600, 'path' => $app['cookie_path'], 'secure' => $app['cookie_secure'], 'httponly' => true, 'samesite' => 'Strict']);
         session_destroy();
         Response::ok([], 'Déconnexion effectuée.');
     }

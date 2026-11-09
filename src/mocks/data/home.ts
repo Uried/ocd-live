@@ -1,6 +1,6 @@
 import liveCommerce from '../../assets/images/live-commerce.jpg';
 import production from '../../assets/images/production.jpg';
-import studio from '../../assets/images/studio.webp';
+import heroStudio from '../../assets/images/hero-studio.webp';
 import type { HomeContent } from '../../types/content';
 
 export const homeContent: HomeContent = {
@@ -13,18 +13,18 @@ export const homeContent: HomeContent = {
   hero: {
     eyebrow: 'LIVE SHOPPING · TOGO & À DISTANCE',
     title: 'Votre activité\nmérite d’être\nvue.',
-    description: 'Présentez vos produits, développez votre visibilité et touchez de nouveaux clients grâce aux sessions OCD Live.',
+    description: 'Présentez vos produits, développez votre visibilité et échangez directement avec votre audience grâce aux lives OCD Live.',
     photo: {
-      src: studio,
-      alt: 'Dans les locaux OCD Live, une personne derrière un bureau, devant le logo cuivre et la carte lumineuse de l’Afrique.',
-      credit: 'OCD Live · photographie fournie',
+      src: heroStudio,
+      alt: 'Une présentatrice montre un pot de sauce dans le studio OCD Live, devant le logo et le mur lumineux, face au matériel de live shopping.',
+      credit: 'OCD Live · visuel fourni, généré à partir du studio réel',
       source: '',
-      position: '50% 36%',
-      kind: 'studio',
-      width: 415,
-      height: 739,
+      position: '50% 50%',
+      kind: 'provided',
+      width: 1376,
+      height: 768,
     },
-    photoLabel: 'Bienvenue dans les locaux OCD Live.',
+    photoLabel: 'Le studio OCD Live, au Togo.',
   },
   modes: [
     {

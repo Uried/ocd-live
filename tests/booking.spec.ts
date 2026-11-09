@@ -20,7 +20,7 @@ test('parcours distance, retours, changement de durée et conservation des infor
   const writes: string[] = [];
   page.on('request', (request) => { if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method())) writes.push(request.url()); });
   await page.goto('/');
-  await page.getByRole('button', { name: 'Participer à distance' }).click();
+  await page.getByRole('button', { name: 'Choisir la distance' }).click();
   await page.getByRole('button', { name: 'Choisir Essentiel', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Continuer', exact: true })).toBeDisabled();
   await page.locator('.calendar-day:not([disabled])').last().click();
@@ -46,7 +46,7 @@ test('parcours distance, retours, changement de durée et conservation des infor
   await expect(page.getByRole('heading', { name: 'Votre sélection est prête.' })).toBeVisible();
   await expect(page.locator('.booking-summary')).toContainText('Long format');
   await page.getByRole('link', { name: 'Revenir à l’accueil' }).first().click();
-  await page.getByRole('button', { name: 'Participer à distance' }).click();
+  await page.getByRole('button', { name: 'Choisir la distance' }).click();
   await expect(page.getByRole('heading', { name: 'Votre sélection est prête.' })).toBeVisible();
   expect(writes).toEqual([]);
 });

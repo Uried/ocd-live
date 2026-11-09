@@ -11,10 +11,13 @@ final class AdminAuth
         if ($app['cookie_secure'] && (($_SERVER['HTTPS'] ?? '') !== 'on') && (($_SERVER['SERVER_PORT'] ?? '') !== '443')) {
             throw new ApiException(503, 'Une connexion HTTPS est requise pour l’administration.');
         }
-        ini_set('session.use_strict_mode', '1');
-        ini_set('session.use_only_cookies', '1');
+        foreach (['session.use_strict_mode', 'session.use_only_cookies'] as $name) {
+            if (function_exists('ini_set')) {
+                @ini_set($name, '1');
+            }
+        }
         session_name('OCDADMIN');
-        session_set_cookie_params(['lifetime' => 0, 'path' => '/api', 'secure' => $app['cookie_secure'], 'httponly' => true, 'samesite' => 'Strict']);
+        session_set_cookie_params(['lifetime' => 0, 'path' => $app['cookie_path'], 'secure' => $app['cookie_secure'], 'httponly' => true, 'samesite' => 'Strict']);
         if (!session_start()) {
             throw new ApiException(503, 'Service momentanément indisponible.');
         }

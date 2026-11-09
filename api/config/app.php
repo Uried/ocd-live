@@ -2,47 +2,45 @@
 declare(strict_types=1);
 
 /**
- * Charge .env puis expose la configuration applicative.
- * Aucun identifiant dans le code : tout vient de l'environnement.
+ * Configuration applicative portable. Aucun identifiant dans le code : environnement du serveur,
+ * config/secrets.php (voir config/secrets.example.php) ou, en développement local, .env.
  */
 
-$envFile = dirname(__DIR__) . '/.env';
-if (is_file($envFile)) {
-    foreach ((array) file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
-        $line = trim($line);
-        if ($line === '' || str_starts_with($line, '#') || !str_contains($line, '=')) {
-            continue;
-        }
-        [$key, $value] = array_map('trim', explode('=', $line, 2));
-        if (getenv($key) === false) {
-            $_ENV[$key] = trim($value, " \t\n\r\0\x0B\"'");
-        }
+$settings = Config::values(dirname(__DIR__));
+$get = static fn (string $key, string $fallback = ''): string => $settings[$key] ?? $fallback;
+$limit = static fn (string $key, int $default): int => max(1, min(10000, (int) ($settings[$key] ?? $default)));
+foreach ([['display_errors', '0'], ['log_errors', '1']] as [$name, $value]) {
+    if (function_exists('ini_set')) {
+        @ini_set($name, $value);
     }
 }
-$env = static fn (string $key, string $fallback = ''): string => getenv($key) !== false ? (string) getenv($key) : (string) ($_ENV[$key] ?? $fallback);
-ini_set('display_errors', '0');
-ini_set('log_errors', '1');
 error_reporting(E_ALL);
 
 return [
-    'env' => $env('APP_ENV', 'production'),
-    'app_key' => $env('APP_KEY'),
-    'cors_origin' => $env('CORS_ORIGIN'),
-    'cookie_secure' => $env('APP_ENV', 'production') !== 'local' || $env('SESSION_COOKIE_SECURE', '1') === '1',
-    'rate_limit_dir' => $env('RATE_LIMIT_DIRECTORY', dirname(__DIR__) . '/storage/rate-limit'),
+    'env' => $get('APP_ENV', 'production'),
+    'role' => $get('APP_ROLE', 'production') === 'control' ? 'control' : 'production',
+    'app_key' => $get('APP_KEY'),
+    'cors_origin' => $get('CORS_ORIGIN'),
+    'cookie_secure' => $get('APP_ENV', 'production') !== 'local' || $get('SESSION_COOKIE_SECURE', '1') === '1',
+    'cookie_path' => $get('SESSION_COOKIE_PATH', '/api'),
+    'rate_limit_dir' => $get('RATE_LIMIT_DIRECTORY', dirname(__DIR__) . '/storage/rate-limit'),
+    'client_ip_header' => $get('CLIENT_IP_HEADER'),
+    'control_db_name' => $get('CONTROL_DB_NAME'),
+    'preflight_token' => $get('PREFLIGHT_TOKEN'),
     'session_idle' => 1800,
     'session_max' => 28800,
     'rate_limit' => [
-        'bookings' => ['max' => 5, 'window' => 300],
-        'quotes' => ['max' => 5, 'window' => 300],
-        'login' => ['max' => 5, 'window' => 300],
+        'bookings' => ['max' => $limit('RATE_LIMIT_BOOKINGS', 5), 'window' => 300],
+        'quotes' => ['max' => $limit('RATE_LIMIT_QUOTES', 5), 'window' => 300],
+        'login' => ['max' => $limit('RATE_LIMIT_LOGIN', 5), 'window' => 300],
     ],
     'db' => [
-        'host' => $env('DB_HOST'),
-        'port' => $env('DB_PORT', '3306'),
-        'name' => $env('DB_NAME'),
-        'user' => $env('DB_USER'),
-        'pass' => $env('DB_PASS'),
+        'host' => $get('DB_HOST'),
+        'port' => $get('DB_PORT', '3306'),
+        'name' => $get('DB_NAME'),
+        'user' => $get('DB_USER'),
+        'pass' => $get('DB_PASS'),
+        'ssl_ca' => $get('DB_SSL_CA'),
         'charset' => 'utf8mb4',
     ],
 ];

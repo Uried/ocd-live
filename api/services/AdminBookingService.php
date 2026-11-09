@@ -86,12 +86,19 @@ final class AdminBookingService
                     throw new ApiException(409, 'Planifiez au moins une séance avant confirmation.');
                 }
                 $tz = AvailabilityService::timezone($db);
+                $seen = [];
                 foreach ($sessions as $session) {
                     $start = (new DateTimeImmutable($session['start_at'], new DateTimeZone('UTC')))->getTimestamp();
                     $end = (new DateTimeImmutable($session['end_at'], new DateTimeZone('UTC')))->getTimestamp();
                     if ($end <= $start || $start <= time()) {
                         throw new ApiException(409, 'Une séance doit être reprogrammée avant confirmation.');
                     }
+                    foreach ($seen as [$a, $b]) {
+                        if ($start < $b && $a < $end) {
+                            throw new ApiException(409, 'Deux séances de cette réservation se chevauchent.');
+                        }
+                    }
+                    $seen[] = [$start, $end];
                     AvailabilityService::check($db, $booking['mode'], [$start, $end], $tz, $id);
                 }
             }

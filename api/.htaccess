@@ -1,11 +1,17 @@
-# Tout passe par index.php ; les dossiers internes ne sont pas exposés.
+# Tout passe par index.php. Ces règles complètent les protections applicatives et les .htaccess par dossier.
 Options -Indexes
 RewriteEngine On
 RewriteRule ^(?:config|storage|database|routes|utils|services|middleware|controllers|tests)(?:/|$) - [F,L,NC]
-RewriteRule ^(?:\.|README|composer) - [F,L,NC]
+RewriteRule (?:^|/)(?:\.|README|DEPLOYMENT|composer|secrets)|\.(?:sql|log|md|example|env|bak|old|zip)$ - [F,L,NC]
 RewriteRule ^index\.php$ - [L]
 RewriteRule ^ index.php [L]
 
-<FilesMatch "^\.env|^composer">
-    Require all denied
+<FilesMatch "^\.env|^composer|\.(?:sql|log|md|bak|old)$|secrets">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
 </FilesMatch>

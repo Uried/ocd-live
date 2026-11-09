@@ -5,13 +5,14 @@ require_once dirname(__DIR__) . '/config/database.php';
 
 $limited = static function (string $scope, callable $handler) use ($app): void {
     $limit = $app['rate_limit'][$scope];
-    RateLimitMiddleware::check($scope, $limit['max'], $limit['window'], $app['rate_limit_dir']);
+    RateLimitMiddleware::check($scope, $limit['max'], $limit['window'], $app['rate_limit_dir'], ClientIp::get($app));
     $handler();
 };
 
 return [
     ['GET', '#^packages$#', static fn () => PackageController::index($app)],
     ['GET', '#^settings$#', static fn () => PackageController::settings($app)],
+    ['GET', '#^preflight$#', static fn () => PreflightController::index($app)],
     ['GET', '#^availability$#', static fn () => AvailabilityController::index($app)],
     ['POST', '#^bookings$#', static fn () => $limited('bookings', static fn () => BookingController::create($app))],
     ['POST', '#^quotes$#', static fn () => $limited('quotes', static fn () => QuoteController::create($app))],

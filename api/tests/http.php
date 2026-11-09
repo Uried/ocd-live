@@ -62,6 +62,7 @@ try {
     httpCheck('GET availability arbitrary duration refused', 422, request('availability?mode=remote&date=2099-01-05&duration=15'));
     httpCheck('GET availability fails closed without database', 503, request('availability?mode=remote&date=2099-01-05&package_id=1'));
     httpCheck('unknown internal directory not served', 404, request('database/schema.sql'));
+    httpCheck('preflight hidden outside a control role', 404, request('preflight', 'GET', null, ['X-Preflight-Token: ' . str_repeat('a', 40)]));
     httpCheck('unsupported HTTP method', 405, request('packages', 'POST', '{}'));
     httpCheck('foreign origin refused', 403, request('packages', 'GET', null, ['Origin: https://invalid.example']));
     httpCheck('CORS preflight', 204, request('bookings', 'OPTIONS', null, ['Origin: http://127.0.0.1:5173']));

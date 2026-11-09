@@ -241,5 +241,116 @@ test('range subtraction and joining contiguous opening windows', static function
     check(AvailabilityService::merge([[5, 10], [1, 5]]) === [[1, 10]]);
 });
 
+test('availability offers verified cross-midnight starts for a long package', static function (): void {
+    $db = new FakeDatabase();
+    foreach ($db->rows['availability_rules'] as &$rule) {
+        $rule['start_time'] = '22:00:00'; $rule['end_time'] = '04:00:00';
+    }
+    unset($rule);
+    $windows = AvailabilityService::windows($db, 'remote', '2099-01-05', 2)['windows'];
+    $late = array_values(array_filter($windows, static fn ($w) => str_contains($w['start_at'], '2099-01-05T22:00:00')));
+    check(count($late) === 1 && str_contains($late[0]['end_at'], '2099-01-06T04:00:00'));
+    check(str_contains($late[0]['latest_start_at'], '2099-01-05T23:59:00'));
+});
+test('exceptional opening replaces previous-night carry into the day', static function (): void {
+    $db = new FakeDatabase();
+    foreach ($db->rows['availability_rules'] as &$rule) {
+        $rule['start_time'] = '22:00:00'; $rule['end_time'] = '04:00:00';
+    }
+    unset($rule);
+    $db->rows['availability_exceptions'] = [['exception_date' => '2099-01-05', 'mode' => 'all', 'is_closed' => 0, 'start_time' => '12:00:00', 'end_time' => '15:00:00']];
+    $windows = AvailabilityService::windows($db, 'remote', '2099-01-05', null)['windows'];
+    check(count($windows) === 1 && str_contains($windows[0]['start_at'], 'T12:00:00'));
+});
+test('status write failure rolls back status and history', static function () use ($app, $key): void {
+    $db = new FakeDatabase();
+    BookingService::create($db, input(), $app, $key);
+    $id = (int) array_values($db->rows['bookings'])[0]['id'];
+    $db->failOn = 'INSERT INTO booking_status_history';
+    try {
+        AdminBookingService::changeStatus($db, $id, 'confirmed', null, 1);
+        throw new LogicException('Expected failure');
+    } catch (RuntimeException $error) {
+        check($error->getMessage() === 'Injected failure');
+    }
+    check($db->rows['bookings'][$id]['status'] === 'pending' && count($db->rows['booking_status_history']) === 1);
+});
+
+function fixtureDirectory(): string
+{
+    $dir = sys_get_temp_dir() . '/ocd-config-' . bin2hex(random_bytes(6));
+    mkdir($dir . '/config', 0700, true);
+    return $dir;
+}
+function removeDirectory(string $dir): void
+{
+    foreach (array_diff(scandir($dir) ?: [], ['.', '..']) as $item) {
+        is_dir($dir . '/' . $item) ? removeDirectory($dir . '/' . $item) : unlink($dir . '/' . $item);
+    }
+    rmdir($dir);
+}
+test('config precedence: environment, secrets.php then dotenv', static function (): void {
+    $dir = fixtureDirectory();
+    try {
+        file_put_contents($dir . '/config/secrets.php', "<?php if (!defined('OCD_CONFIG_LOADING')) { exit; } return ['DB_NAME' => 'from-secrets', 'DB_USER' => 'secret-user', 'UNKNOWN' => 'ignored'];");
+        file_put_contents($dir . '/.env', "DB_NAME=from-dotenv\nDB_USER=dotenv-user\nDB_HOST=dotenv-host\nAPP_ENV=local\n");
+        $values = Config::values($dir, ['DB_NAME' => 'from-env', 'ANYTHING' => 'ignored'], '');
+        check($values['DB_NAME'] === 'from-env' && $values['DB_USER'] === 'secret-user' && $values['DB_HOST'] === 'dotenv-host');
+        check(!isset($values['UNKNOWN']) && !isset($values['ANYTHING']));
+    } finally {
+        removeDirectory($dir);
+    }
+});
+test('secrets.php reveals nothing when executed directly', static function (): void {
+    $output = (string) shell_exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(dirname(__DIR__) . '/config/secrets.example.php'));
+    check($output === '');
+});
+test('plain dotenv inside the public root is ignored outside local mode', static function (): void {
+    $dir = fixtureDirectory();
+    try {
+        file_put_contents($dir . '/.env', "DB_PASS=must-not-load\nAPP_ENV=production\n");
+        check(!isset(Config::values($dir, [], $dir)['DB_PASS']));
+        check(Config::values($dir, [], $dir . '-another-root')['DB_PASS'] === 'must-not-load');
+        check(Config::values($dir, ['APP_ENV' => 'local'], $dir)['DB_PASS'] === 'must-not-load');
+    } finally {
+        removeDirectory($dir);
+    }
+});
+test('client address uses a forwarded header only when explicitly configured and valid', static function (): void {
+    $_SERVER['REMOTE_ADDR'] = '10.1.2.3';
+    $_SERVER['HTTP_X_FORWARDED_FOR'] = '198.51.100.7, 10.0.0.1';
+    check(ClientIp::get(['client_ip_header' => '']) === '10.1.2.3');
+    check(ClientIp::get(['client_ip_header' => 'HTTP_X_FORWARDED_FOR']) === '198.51.100.7');
+    $_SERVER['HTTP_X_FORWARDED_FOR'] = 'not-an-address';
+    check(ClientIp::get(['client_ip_header' => 'HTTP_X_FORWARDED_FOR']) === '10.1.2.3');
+    check(ClientIp::masked('198.51.100.7') === '198.51.x.x');
+    unset($_SERVER['HTTP_X_FORWARDED_FOR'], $_SERVER['REMOTE_ADDR']);
+});
+test('preflight is hidden outside a control role and without the token', static function (): void {
+    $app = ['role' => 'production', 'preflight_token' => str_repeat('a', 40)];
+    $_SERVER['HTTP_X_PREFLIGHT_TOKEN'] = str_repeat('a', 40);
+    expectError(404, static fn () => PreflightController::index($app));
+    $app['role'] = 'control';
+    $_SERVER['HTTP_X_PREFLIGHT_TOKEN'] = 'wrong';
+    expectError(404, static fn () => PreflightController::index($app));
+    $app['preflight_token'] = 'short';
+    $_SERVER['HTTP_X_PREFLIGHT_TOKEN'] = 'short';
+    expectError(404, static fn () => PreflightController::index($app));
+    unset($_SERVER['HTTP_X_PREFLIGHT_TOKEN']);
+});
+test('log file starts with a guard that prevents reading it over HTTP', static function (): void {
+    $file = dirname(__DIR__) . '/storage/logs/app.log.php';
+    $existed = is_file($file);
+    $backup = $existed ? file_get_contents($file) : null;
+    if ($existed) { unlink($file); }
+    try {
+        Logger::error('fixture', ['type' => 'Fixture']);
+        check(str_starts_with((string) file_get_contents($file), '<?php http_response_code(404); exit; ?>'));
+        check((string) shell_exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($file)) === '');
+    } finally {
+        $existed ? file_put_contents($file, $backup) : @unlink($file);
+    }
+});
+
 echo PHP_EOL . $passed . ' passed; ' . $failed . ' failed (in-memory PDO doubles, no database connection).' . PHP_EOL;
 exit($failed === 0 ? 0 : 1);

@@ -5,13 +5,13 @@ declare(strict_types=1);
 
 final class RateLimitMiddleware
 {
-    public static function check(string $scope, int $max, int $windowSeconds, ?string $directory = null): void
+    public static function check(string $scope, int $max, int $windowSeconds, ?string $directory = null, ?string $clientIp = null): void
     {
         $dir = $directory ?? dirname(__DIR__) . '/storage/rate-limit';
         if (!is_dir($dir) && !mkdir($dir, 0700, true) && !is_dir($dir)) {
             throw new ApiException(503, 'Service momentanément indisponible.');
         }
-        $key = hash('sha256', $scope . ':' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+        $key = hash('sha256', $scope . ':' . ($clientIp ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown'));
         $handle = fopen($dir . '/' . $key . '.json', 'c+');
         if ($handle === false) {
             throw new ApiException(503, 'Service momentanément indisponible.');

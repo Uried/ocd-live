@@ -49,6 +49,9 @@ final class AvailabilityService
             throw new ApiException(422, 'Choisissez un horaire à venir.');
         }
         $end = $start->add(new DateInterval('PT' . $duration . 'M'));
+        if ((int) $end->format('Y') > 9999) {
+            throw new ApiException(422, 'La fin de séance dépasse la période prise en charge.');
+        }
         return [$start->getTimestamp(), $end->getTimestamp()];
     }
 
