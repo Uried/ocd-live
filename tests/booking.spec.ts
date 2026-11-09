@@ -51,6 +51,36 @@ test('parcours distance, retours, changement de durée et conservation des infor
   expect(writes).toEqual([]);
 });
 
+test('le calendrier refuse une heure passée aujourd’hui et se pilote au clavier', async ({ page }) => {
+  await page.goto('/reservation?mode=remote');
+  await page.getByRole('button', { name: 'Choisir Essentiel', exact: true }).click();
+  await page.locator('.calendar-day[data-today]').click();
+  await page.locator('input[type=time]').fill('00:01');
+  await expect(page.getByRole('alert')).toHaveText('Choisissez une heure à venir.');
+  await expect(page.getByRole('button', { name: 'Continuer', exact: true })).toBeDisabled();
+  await expect(page.locator('input[type=time]')).toHaveAttribute('aria-invalid', 'true');
+  const today = page.locator('.calendar-day[data-today]');
+  const todayNumber = Number(await today.getAttribute('data-day'));
+  await today.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect.poll(() => page.evaluate(() => Number((document.activeElement as HTMLElement | null)?.dataset.day))).toBeGreaterThan(todayNumber);
+  await page.keyboard.press('ArrowDown');
+  await expect.poll(() => page.evaluate(() => Number((document.activeElement as HTMLElement | null)?.dataset.day))).toBeGreaterThan(todayNumber + 1);
+  const selected = page.locator('.calendar-day[aria-pressed="true"]');
+  await selected.hover();
+  await expect(selected).toHaveCSS('background-color', 'rgb(41, 41, 41)');
+  await page.locator('select').selectOption('in-person');
+  await expect(page).toHaveURL(/mode=in-person/);
+});
+
+test('la navigation mensuelle reste dans la période de réservation', async ({ page }) => {
+  await page.goto('/reservation?mode=remote');
+  await page.getByRole('button', { name: 'Choisir Essentiel', exact: true }).click();
+  const next = page.getByRole('button', { name: 'Mois suivant', exact: true });
+  for (let index = 0; index < 5 && await next.isEnabled(); index++) await next.click();
+  await expect(next).toBeDisabled();
+});
+
 test('mensuel avec quatre séances et calendrier à convenir, informations adaptées au studio', async ({ page }) => {
   await page.goto('/reservation?mode=in-person');
   await page.getByRole('button', { name: 'Choisir Mensuel', exact: true }).click();

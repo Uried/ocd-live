@@ -3,6 +3,8 @@ import type { Dispatch, SetStateAction } from 'react';
 import { Link, Outlet, useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { bookingRepository, contentRepository } from '../../services/repositories';
+import { bookingHorizonKey, getDayIssue, getTimeIssue, lomeTodayKey } from '../../services/availability';
+import { addDaysToKey, addMinutesToTime, parseDateKey, toDateKey } from '../../utils/datetime';
 import type { BookingMode, BookingPackage } from '../../types/booking';
 import type { NavigationItem } from '../../types/content';
 import { Button } from '../../components/ui/button';
@@ -33,24 +35,16 @@ const emptyDetails: Details = { name: '', email: '', phone: '', business: '', se
 const emptyDraft: Draft = { mode: 'in-person', packageId: '', slotDate: '', slotTime: '', step: 0, details: emptyDetails };
 type FlowContext = [Draft, Dispatch<SetStateAction<Draft>>];
 
-const pad = (value: number) => String(value).padStart(2, '0');
-const toDateKey = (date: Date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-const parseDateKey = (key: string) => {
-  const [year = 0, month = 1, day = 1] = key.split('-').map(Number);
-  return new Date(year, month - 1, day);
-};
-const addMinutes = (time: string, minutes: number) => {
-  const [hours = 0, mins = 0] = time.split(':').map(Number);
-  const total = hours * 60 + mins + minutes;
-  return `${pad(Math.floor(total / 60) % 24)}:${pad(total % 60)}`;
-};
 const packagePrice = (item: BookingPackage) => item.price.amount === null ? 'Tarif sur demande' : `${new Intl.NumberFormat('fr-FR').format(item.price.amount)} FCFA`;
 const modeLabel = (mode: BookingMode) => mode === 'remote' ? 'À distance' : 'En présentiel';
+const dayLabel = (dateKey: string, dateStyle: 'full' | 'long' = 'full') => new Intl.DateTimeFormat('fr-FR', { dateStyle }).format(parseDateKey(dateKey));
 const slotLabel = (draft: Pick<Draft, 'slotDate' | 'slotTime'>, selected: BookingPackage) => {
   if (!draft.slotDate || !draft.slotTime) return '';
-  const date = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full' }).format(parseDateKey(draft.slotDate));
-  const end = selected.durationMinutes ? addMinutes(draft.slotTime, selected.durationMinutes) : '';
-  return `${date} · ${draft.slotTime}${end ? ` – ${end}` : ''} · Africa/Lome`;
+  const date = dayLabel(draft.slotDate);
+  if (!selected.durationMinutes) return `${date} · ${draft.slotTime} · Africa/Lome`;
+  const { end, endDateOffset } = addMinutesToTime(draft.slotTime, selected.durationMinutes);
+  const nextDay = endDateOffset > 0 ? `, le lendemain ${dayLabel(addDaysToKey(draft.slotDate, endDateOffset), 'long')}` : '';
+  return `${date} · ${draft.slotTime} – ${end}${nextDay} · Africa/Lome`;
 };
 
 const steps = ['Formule', 'Date & horaire', 'Votre activité', 'Récapitulatif', 'Votre sélection'];
@@ -60,12 +54,12 @@ export function BookingFlowLayout() {
   return <Outlet context={state} />;
 }
 
-function BookingCalendar({ value, onChange }: { value: string; onChange: (dateKey: string) => void }) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const horizon = new Date(today);
-  horizon.setDate(horizon.getDate() + 90);
+function BookingCalendar({ value, mode, onChange }: { value: string; mode: BookingMode; onChange: (dateKey: string) => void }) {
+  const todayKey = lomeTodayKey();
+  const today = parseDateKey(todayKey);
   const monthFloor = new Date(today.getFullYear(), today.getMonth(), 1);
+  const horizonDate = parseDateKey(bookingHorizonKey());
+  const horizonMonthFloor = new Date(horizonDate.getFullYear(), horizonDate.getMonth(), 1);
   const [cursor, setCursor] = useState(() => {
     const base = value ? parseDateKey(value) : today;
     return new Date(base.getFullYear(), base.getMonth(), 1);
@@ -77,25 +71,40 @@ function BookingCalendar({ value, onChange }: { value: string; onChange: (dateKe
   const cells = [...Array<null>(offset).fill(null), ...Array.from({ length: daysInMonth }, (_, index) => index + 1)];
   const weeks = Array.from({ length: Math.ceil(cells.length / 7) }, (_, index) => cells.slice(index * 7, index * 7 + 7));
   const move = (delta: number) => setCursor((current) => new Date(current.getFullYear(), current.getMonth() + delta, 1));
+  const onGridKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const deltas: Record<string, number> = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 };
+    const day = Number((event.target as HTMLElement).dataset.day);
+    if (!day) return;
+    const delta = deltas[event.key];
+    const direction = delta ?? (event.key === 'Home' ? 1 : event.key === 'End' ? -1 : 0);
+    if (!direction) return;
+    let next = event.key === 'Home' ? 1 : event.key === 'End' ? daysInMonth : day + direction;
+    while (next >= 1 && next <= daysInMonth) {
+      const button = event.currentTarget.querySelector<HTMLButtonElement>(`[data-day="${next}"]`);
+      if (button && !button.disabled) { button.focus(); break; }
+      next += direction;
+    }
+    event.preventDefault();
+  };
   return (
     <div className="calendar">
       <div className="calendar-header">
         <button type="button" className="calendar-nav" aria-label="Mois précédent" disabled={cursor <= monthFloor} onClick={() => move(-1)}><ChevronLeft size={18} aria-hidden="true" /></button>
         <strong>{label}</strong>
-        <button type="button" className="calendar-nav" aria-label="Mois suivant" onClick={() => move(1)}><ChevronRight size={18} aria-hidden="true" /></button>
+        <button type="button" className="calendar-nav" aria-label="Mois suivant" disabled={cursor >= horizonMonthFloor} onClick={() => move(1)}><ChevronRight size={18} aria-hidden="true" /></button>
       </div>
-      <div role="grid" aria-label={`Choisir une date en ${label}`}>
+      <div role="grid" aria-label={`Choisir une date en ${label}`} onKeyDown={onGridKeyDown}>
         <div role="row" className="calendar-weekdays">{['lun', 'mar', 'mer', 'jeu', 'ven', 'sam', 'dim'].map((day) => <span role="columnheader" key={day}>{day}</span>)}</div>
         {weeks.map((week, weekIndex) => (
           <div role="row" className="calendar-week" key={weekIndex}>
             {week.map((day, dayIndex) => {
               if (day === null) return <span role="gridcell" className="calendar-empty" key={dayIndex} aria-hidden="true" />;
-              const date = new Date(cursor.getFullYear(), cursor.getMonth(), day);
-              const key = toDateKey(date);
+              const key = toDateKey(new Date(cursor.getFullYear(), cursor.getMonth(), day));
               const selected = key === value;
+              const disabled = getDayIssue(key, mode, todayKey) !== null;
               return (
                 <span role="gridcell" key={dayIndex} aria-selected={selected}>
-                  <button type="button" className="calendar-day" data-today={key === toDateKey(today) || undefined} aria-pressed={selected} disabled={date < today || date > horizon} aria-label={dayFormatter.format(date)} onClick={() => onChange(key)}>{day}</button>
+                  <button type="button" className="calendar-day" data-day={day} data-today={key === todayKey || undefined} aria-pressed={selected} aria-current={key === todayKey ? 'date' : undefined} disabled={disabled} aria-label={dayFormatter.format(new Date(cursor.getFullYear(), cursor.getMonth(), day))} onClick={() => onChange(key)}>{day}</button>
                 </span>
               );
             })}
@@ -108,7 +117,7 @@ function BookingCalendar({ value, onChange }: { value: string; onChange: (dateKe
 
 export function BookingPage() {
   const [draft, setDraft] = useOutletContext<FlowContext>();
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const requestedMode = params.get('mode');
   const navigate = useNavigate();
   const [packages, setPackages] = useState<BookingPackage[]>([]);
@@ -117,6 +126,8 @@ export function BookingPage() {
   const [attempt, setAttempt] = useState(0);
   const heading = useRef<HTMLHeadingElement>(null);
   const selected = packages.find((item) => item.id === draft.packageId);
+  const timeIssue = selected?.durationMinutes && draft.slotDate && draft.slotTime ? getTimeIssue(draft.slotDate, draft.slotTime, selected.durationMinutes, draft.mode) : null;
+  const timeIssueMessage = timeIssue === 'past' ? 'Choisissez une heure à venir.' : timeIssue === 'outside-hours' ? 'Cette heure est en dehors des horaires proposés.' : timeIssue === 'occupied' ? 'Ce créneau est déjà occupé.' : timeIssue ? 'Cette journée n’est pas disponible pour ce mode de participation.' : null;
   const update = (patch: Partial<Draft>) => setDraft((previous) => ({ ...previous, ...patch }));
   useEffect(() => {
     if (requestedMode === 'remote' || requestedMode === 'in-person') setDraft((previous) => previous.mode === requestedMode ? previous : { ...previous, mode: requestedMode, slotDate: '', slotTime: '', step: 0 });
@@ -155,7 +166,7 @@ export function BookingPage() {
           <p>{draft.step === 0 ? 'Comparez les formats et choisissez celui qui correspond à votre ambition.' : 'Votre projet, étape par étape.'}</p>
         </div>
         <div className="booking-toolbar">
-          <label>Participation <select value={draft.mode} onChange={(event) => update({ mode: event.target.value as BookingMode, slotDate: '', slotTime: '', step: 0 })}><option value="in-person">En présentiel</option><option value="remote">À distance</option></select></label>
+          <label>Participation <select value={draft.mode} onChange={(event) => { const mode = event.target.value as BookingMode; update({ mode, slotDate: '', slotTime: '', step: 0 }); setParams({ mode }, { replace: true }); }}><option value="in-person">En présentiel</option><option value="remote">À distance</option></select></label>
           {selected && <p><strong>{selected.name}</strong> · {selected.durationLabel} · {packagePrice(selected)}</p>}
         </div>
         {status === 'loading' ? <p role="status">Chargement des formules…</p> : status === 'error' ? (
@@ -201,11 +212,12 @@ export function BookingPage() {
               {selected.durationMinutes ? (<>
                 <p className="schedule-intro">Horaires de Lomé · Africa/Lome. Choisissez librement votre heure de début ; votre formule couvre {selected.durationLabel}.</p>
                 <div className="schedule-grid">
-                  <BookingCalendar value={draft.slotDate} onChange={(slotDate) => update({ slotDate })} />
+                  <BookingCalendar value={draft.slotDate} mode={draft.mode} onChange={(slotDate) => update({ slotDate })} />
                   <div className="schedule-side">
                     <label className="booking-field">Heure de début souhaitée
-                      <input required type="time" step={60} value={draft.slotTime} onChange={(event) => update({ slotTime: event.target.value })} />
+                      <input required type="time" step={60} value={draft.slotTime} aria-invalid={Boolean(timeIssueMessage)} aria-describedby={timeIssueMessage ? 'slot-time-error' : undefined} onChange={(event) => update({ slotTime: event.target.value })} />
                     </label>
+                    {timeIssueMessage && <p id="slot-time-error" className="form-error" role="alert">{timeIssueMessage}</p>}
                     {draft.slotDate && draft.slotTime ? (
                       <div className="schedule-recap" role="status"><strong>Votre créneau souhaité</strong><span>{slotLabel(draft, selected)}</span></div>
                     ) : (
@@ -218,7 +230,7 @@ export function BookingPage() {
               )}
               <div className="booking-actions">
                 <Button variant="outline" onClick={() => update({ step: 0 })}>Changer de formule</Button>
-                <Button disabled={Boolean(selected.durationMinutes) && (!draft.slotDate || !draft.slotTime)} onClick={() => update({ step: 2 })}>Continuer<ArrowRight size={16} aria-hidden="true" /></Button>
+                <Button disabled={Boolean(selected.durationMinutes) && (!draft.slotDate || !draft.slotTime || Boolean(timeIssue) || getDayIssue(draft.slotDate, draft.mode) !== null)} onClick={() => update({ step: 2 })}>Continuer<ArrowRight size={16} aria-hidden="true" /></Button>
               </div>
             </section>
           )}

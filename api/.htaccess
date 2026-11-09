@@ -1,0 +1,11 @@
+# Tout passe par index.php ; les dossiers internes ne sont pas exposés.
+Options -Indexes
+RewriteEngine On
+RewriteRule ^(?:config|storage|database|routes|utils|services|middleware|controllers|tests)(?:/|$) - [F,L,NC]
+RewriteRule ^(?:\.|README|composer) - [F,L,NC]
+RewriteRule ^index\.php$ - [L]
+RewriteRule ^ index.php [L]
+
+<FilesMatch "^\.env|^composer">
+    Require all denied
+</FilesMatch>
