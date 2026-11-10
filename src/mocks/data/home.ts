@@ -8,6 +8,8 @@ export const homeContent: HomeContent = {
     { label: 'Accueil', href: '/#accueil' },
     { label: 'Comment ça marche', href: '/#comment-ca-marche' },
     { label: 'Nos offres', href: '/#prestations' },
+    { label: 'Le Studio', href: '/studio' },
+    { label: 'Préparer son live', href: '/preparer-live' },
     { label: 'FAQ', href: '/#faq' },
   ],
   hero: {

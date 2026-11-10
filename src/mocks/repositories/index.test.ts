@@ -6,7 +6,7 @@ describe('repositories locaux', () => {
   it('renvoie le contenu sans partager de références mutables', async () => {
     const first = await mockContentRepository.getHome();
     first.navigation.length = 0;
-    expect((await mockContentRepository.getHome()).navigation).toHaveLength(4);
+    expect((await mockContentRepository.getHome()).navigation).toHaveLength(6);
   });
   it('renvoie six formules compatibles avec le mode sans partager de références', async () => {
     const remote = await mockBookingRepository.getPackages('remote');

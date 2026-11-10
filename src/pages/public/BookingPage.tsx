@@ -119,6 +119,8 @@ export function BookingPage() {
   const [draft, setDraft] = useOutletContext<FlowContext>();
   const [params, setParams] = useSearchParams();
   const requestedMode = params.get('mode');
+  const requestedPackage = params.get('formule');
+  const appliedPackage = useRef<string | null>(null);
   const navigate = useNavigate();
   const [packages, setPackages] = useState<BookingPackage[]>([]);
   const [navigation, setNavigation] = useState<NavigationItem[]>([]);
@@ -141,6 +143,13 @@ export function BookingPage() {
     );
     return () => { active = false; };
   }, [draft.mode, attempt]);
+  useEffect(() => {
+    if (status !== 'ready' || !requestedPackage || appliedPackage.current === requestedPackage) return;
+    const match = packages.find((item) => item.id === requestedPackage);
+    if (!match) return;
+    appliedPackage.current = requestedPackage;
+    setDraft((previous) => ({ ...previous, packageId: match.id, slotDate: '', slotTime: '', step: 1 }));
+  }, [status, requestedPackage, packages, setDraft]);
   useEffect(() => {
     let active = true;
     contentRepository.getHome().then((content) => { if (active) setNavigation(content.navigation); });

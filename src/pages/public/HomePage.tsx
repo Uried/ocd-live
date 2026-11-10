@@ -9,6 +9,7 @@ import { Hero } from './home/Hero';
 import { Participation } from './home/Participation';
 import { HowItWorks } from './home/HowItWorks';
 import { Services } from './home/Services';
+import { AdvisorBanner } from './home/AdvisorBanner';
 import { FAQ } from './home/FAQ';
 import { ClosingCTA } from './home/ClosingCTA';
 
@@ -33,5 +34,5 @@ export function HomePage() {
   if (state.status === 'loading') return <main className="page-state" aria-busy="true"><span className="loading-mark" aria-hidden="true" /><p role="status">OCD Live · Préparation de votre expérience…</p></main>;
   if (state.status === 'error') return <main className="page-state"><h1>Une petite interruption.</h1><p role="alert">Le contenu n’a pas pu être chargé.</p><Button onClick={retry}>Réessayer</Button></main>;
   const { content } = state;
-  return <><PublicLayout content={content} onBook={() => openBooking()}><Hero content={content.hero} onBook={openBooking} /><Participation modes={content.modes} onBook={openBooking} /><HowItWorks steps={content.steps} /><Services services={content.services} /><FAQ items={content.faq} /><ClosingCTA onBook={() => openBooking()} /></PublicLayout><BookingDialog open={booking.open} mode={booking.mode} onReturnFocus={returnFocus} onOpenChange={(open) => setBooking((previous) => ({ ...previous, open }))} /></>;
+  return <><PublicLayout content={content} onBook={() => openBooking()}><Hero content={content.hero} onBook={openBooking} /><Participation modes={content.modes} onBook={openBooking} /><HowItWorks steps={content.steps} /><Services services={content.services} /><AdvisorBanner /><FAQ items={content.faq} /><ClosingCTA onBook={() => openBooking()} /></PublicLayout><BookingDialog open={booking.open} mode={booking.mode} onReturnFocus={returnFocus} onOpenChange={(open) => setBooking((previous) => ({ ...previous, open }))} /></>;
 }

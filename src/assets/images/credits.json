@@ -4,7 +4,9 @@
   "studio": { "file": "studio.webp", "credit": "OCD Live · photographie fournie pour le projet", "originalDimensions": [415, 739], "processing": "Conversion WebP, sans agrandissement ni retouche du contenu." },
   "provided": [
     { "file": "hero-studio.webp", "credit": "OCD Live · visuel fourni, généré à partir du studio réel", "originalDimensions": [1376, 768], "processing": "Conversion WebP, sans recadrage ni agrandissement. Original JPEG conservé sans modification." },
-    { "file": "live-commerce.jpg", "credit": "OCD Live · visuel fourni pour le projet", "originalDimensions": [1376, 768], "processing": "Aucune retouche." }
+    { "file": "live-commerce.jpg", "credit": "OCD Live · visuel fourni pour le projet", "originalDimensions": [1376, 768], "processing": "Aucune retouche." },
+    { "file": "studio-espace.webp", "credit": "OCD Live · visuel fourni pour le projet", "originalDimensions": [1376, 768], "processing": "Conversion WebP, sans recadrage ni agrandissement. Original JPEG conservé sans modification." },
+    { "file": "prepare-hero.webp", "credit": "OCD Live · visuel fourni pour le projet", "originalDimensions": [1376, 768], "processing": "Conversion WebP, sans recadrage ni agrandissement. Original JPEG conservé sans modification." }
   ],
   "photos": [
     { "file": "conversation.jpg", "author": "Natasha Hall", "source": "https://unsplash.com/photos/2GEMd-c6NOw" },

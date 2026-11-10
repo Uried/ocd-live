@@ -9,7 +9,9 @@ import { Logo } from './Logo';
 
 export function Header({ navigation, onBook }: { navigation: NavigationItem[]; onBook: () => void }) {
   const [open, setOpen] = useState(false);
-  const { hash } = useLocation();
+  const { hash, pathname } = useLocation();
+  const anchor = pathname === '/' ? `/${hash || '#accueil'}` : null;
+  const isCurrent = (href: string) => href === anchor || (pathname !== '/' && href === pathname);
   useEffect(() => {
     const media = window.matchMedia('(min-width: 1024px)');
     const close = () => { if (media.matches) setOpen(false); };
@@ -21,7 +23,7 @@ export function Header({ navigation, onBook }: { navigation: NavigationItem[]; o
       <Container className="header-inner">
         <Logo />
         <nav className="desktop-nav" aria-label="Navigation principale">
-          {navigation.map((item) => <Link key={item.href} to={item.href} aria-current={item.href === `/${hash || '#accueil'}` ? 'location' : undefined}>{item.label}</Link>)}
+          {navigation.map((item) => <Link key={item.href} to={item.href} aria-current={isCurrent(item.href) ? 'location' : undefined}>{item.label}</Link>)}
         </nav>
         <div className="header-actions">
           <Button onClick={onBook} variant="accent" size="small" className="header-book">Réserver un live <ArrowUpRight size={16} aria-hidden="true" /></Button>
@@ -31,7 +33,7 @@ export function Header({ navigation, onBook }: { navigation: NavigationItem[]; o
               <DialogTitle className="eyebrow">OCD LIVE · NAVIGATION</DialogTitle>
               <DialogDescription className="sr-only">Accédez aux sections de la page d’accueil.</DialogDescription>
               <nav aria-label="Navigation mobile">
-                {navigation.map((item, index) => <DialogClose key={item.href} asChild><Link to={item.href} aria-current={item.href === `/${hash || '#accueil'}` ? 'location' : undefined}><span>0{index + 1}</span>{item.label}<ArrowUpRight size={23} aria-hidden="true" /></Link></DialogClose>)}
+                {navigation.map((item, index) => <DialogClose key={item.href} asChild><Link to={item.href} aria-current={isCurrent(item.href) ? 'location' : undefined}><span>0{index + 1}</span>{item.label}<ArrowUpRight size={23} aria-hidden="true" /></Link></DialogClose>)}
               </nav>
               <DialogClose asChild><Button variant="accent" onClick={onBook}>Réserver un live <ArrowUpRight size={18} aria-hidden="true" /></Button></DialogClose>
               <p className="mobile-menu-note">Votre activité, au premier plan.<br />Au Togo et à distance.</p>

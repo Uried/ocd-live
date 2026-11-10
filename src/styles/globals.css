@@ -184,6 +184,13 @@ h1 { font-size: clamp(56px, 6.1vw, 94px); line-height: 1.08; letter-spacing: -.0
 .cta-main p { font-size: 15px; line-height: 1.85; color: var(--muted); margin-bottom: 24px; }
 .cta-main .button { width: 100%; justify-content: space-between; }
 .cta-note { display: block; font-size: 11px; color: var(--muted); margin-top: 12px; line-height: 1.7; }
+.advisor-banner { background: var(--color-ink); color: #fff; border-radius: var(--radius-composition); width: calc(100% - 48px); max-width: 1536px; margin: 32px auto 0; padding-block: clamp(56px, 6vw, 84px); }
+.advisor-banner .eyebrow { color: var(--color-accent); margin-bottom: 18px; }
+.advisor-banner-inner { display: flex; justify-content: space-between; align-items: flex-end; gap: 40px; }
+.advisor-banner-copy h2 { max-width: 640px; }
+.advisor-banner-copy > p:last-child { font-size: 15px; line-height: 1.85; color: #c5c1ba; margin-top: 18px; max-width: 460px; }
+.advisor-banner .button { min-width: 280px; justify-content: space-between; }
+.advisor-banner :focus-visible { outline-color: #f6d88c; }
 .site-footer { background: #fff; color: var(--color-ink); }
 .footer-main { display: grid; grid-template-columns: 1.35fr .8fr 1fr 1fr; gap: 36px; padding-block: 42px; }
 .footer-brand > p { font-size: 14px; line-height: 1.8; color: var(--muted); margin-top: 20px; }
@@ -309,8 +316,11 @@ h1 { font-size: clamp(56px, 6.1vw, 94px); line-height: 1.08; letter-spacing: -.0
   .mode-copy > p { font-size: 14px; }
   .mode-copy li { font-size: 12px; }
   .mode-copy > .button { width: 100%; justify-content: space-between; }
-  .how-it-works, .services, .closing-cta { width: calc(100% - 24px); }
-  .how-it-works .container, .services .container, .closing-cta .container { width: calc(100% - 40px); }
+  .how-it-works, .services, .closing-cta, .advisor-banner { width: calc(100% - 24px); }
+  .how-it-works .container, .services .container, .closing-cta .container, .advisor-banner .container { width: calc(100% - 40px); }
+  .advisor-banner { padding-block: 34px 38px; margin-top: 24px; }
+  .advisor-banner-inner { flex-direction: column; align-items: stretch; gap: 26px; }
+  .advisor-banner .button { width: 100%; min-width: 0; }
   .steps-grid { grid-template-columns: 1fr; gap: 0; }
   .steps-grid li, .steps-grid li + li, .steps-grid li:nth-child(3) { border-left: 0; padding: 24px 0; }
   .step-top { margin-bottom: 16px; }
